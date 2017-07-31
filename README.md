@@ -1,6 +1,6 @@
 # SteamId
 
-**TODO: Add description**
+It gets and parses data from [steamid.io](https://steamid.io/).
 
 ## Installation
 

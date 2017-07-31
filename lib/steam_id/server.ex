@@ -13,8 +13,6 @@ defmodule SteamId.Server do
 
   # callbacks
 
-  # SteamId.Server.lookup("lcp_marvel")
-
   def handle_call({:lookup, content}, _from, _state) do
     request_body = "input=" <> URI.encode_www_form(content)
 
