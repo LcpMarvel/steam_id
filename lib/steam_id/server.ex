@@ -3,6 +3,22 @@ defmodule SteamId.Server do
 
   @url "https://steamid.io/lookup"
 
+  def lookup(contents) when is_list(contents) do
+    contents
+      |> Enum.map(&(Task.async(fn -> lookup(&1) end)))
+      |> Enum.map(&(Task.await(&1)))
+      |> Enum.filter(
+        fn(result) ->
+          case result do
+            :not_found ->
+              false
+            map ->
+              map["profile state"] != "unavailable"
+          end
+        end
+      )
+  end
+
   def lookup(content) do
     GenServer.call(__MODULE__, {:lookup, content})
   end
@@ -13,6 +29,9 @@ defmodule SteamId.Server do
 
   # callbacks
 
+  def handle_call({:lookup, content}, _from, _state) when bit_size(content) == 0 do
+    {:reply, :not_found, []}
+  end
   def handle_call({:lookup, content}, _from, _state) do
     request_body = "input=" <> URI.encode_www_form(content)
 
@@ -56,6 +75,6 @@ defmodule SteamId.Server do
           value
       end
 
-    Map.merge(map, %{name => v})
+    Map.merge(map, %{name => String.trim(v)})
   end
 end

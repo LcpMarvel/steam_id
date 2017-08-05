@@ -22,11 +22,11 @@ defmodule SteamId do
       true
 
   """
-  def lookup(content) do
-    case SteamId.Server.lookup(content) do
-      :not_found ->
+  def lookup(contents) do
+    case contents |> SteamId.format |> SteamId.Server.lookup do
+      [] ->
         :not_found
-      map ->
+      [map | _] ->
         %__MODULE__{
           steam_id: map["steamID"],
           steam_id3: map["steamID3"],
@@ -41,6 +41,34 @@ defmodule SteamId do
           profile: map["profile"]
         }
     end
+  end
+
+  @doc """
+  construct steam ids
+
+  ## Examples
+
+      iex> SteamId.format("22203")
+      ["22203", "U:1:22203"]
+      iex> SteamId.format("76561197960287931")
+      ["76561197960287931"]
+      iex> SteamId.format("timeforpoptarts")
+      ["timeforpoptarts"]
+
+  """
+  def format(content) when is_binary(content) do
+    cond do
+      Regex.match?(~r/7656119\d{10}/, content) ->
+        [content]
+      Regex.match?(~r/\d+/, content) ->
+        [content, "U:1:#{content}"]
+      true ->
+        [content]
+    end
+  end
+
+  def format(_content) do
+    []
   end
 end
 
